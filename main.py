@@ -1,15 +1,6 @@
-from config import PATH, startV, endV, IS_INVALID_V
-import fileHandler as fh
-from ploter import get_stats, plot
-
-
-
-
-#import matplotlib.pyplot as mpl
-#import scipy.sparse as scisparse
-#import sys
-#from collections import defaultdict
-#import mxnet as mx
+from data.config import PATH, startV, endV, IS_INVALID_V
+import data.fileHandler as fh
+from data.ploter import get_stats, plot
 
 befdata = fh.load_each()
 aftdata = fh.load_one(PATH + "/ALL_DAY-CLEAN(231, 624, 800, 24).npz")
@@ -34,10 +25,10 @@ plot((aft_v_means, bef_v_invalid_means),
 vnames = ["V0" + str(i) for i in (1, 2, 3, 4, 6, 7)]
 for i in range(endV-startV):
     print("Before " + str(i + 1))
-    bef_stats = get_stats(befvdata[:, :, :, i:i + 1])
+    bef_stats = get_stats(befvdata[:, :, :, i:i + 1], IS_INVALID_V)
     bef_v_means, bef_v_nz_means, bef_v_invalid_means, bef_vnz_invalid_means = bef_stats
     print("After " + str(i + 1))
-    aft_stats = get_stats(aftvdata[:, :, :, i:i + 1])
+    aft_stats = get_stats(aftvdata[:, :, :, i:i + 1], IS_INVALID_V)
     aft_v_means, aft_v_nz_means, aft_v_invalid_means, aft_vnz_invalid_means = aft_stats
     plot((bef_v_means, aft_v_means, bef_v_invalid_means),
             ("red", "green", "blue"),

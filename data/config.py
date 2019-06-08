@@ -42,12 +42,8 @@ ALL_FIELDS = list(range(24))
 Rs = list(range(6, 12))
 Vs = list(range(17, 23))
 VIL = [23]
-IS_INVALID_R = lambda x: (x < 0) | (x > 75) | (x % 5 != 0)
-IS_INVALID_V = lambda x: (x < -33) | (x > 33)
-#def IS_INVALID_R(x): return (x < 0) | (x > 75) | (x % 5 != 0)
-#def IS_INVALID_V(x): return (x < -33) | (x > 33)
+
+def IS_INVALID_R(x): return (x < 0) | (x > 75) | (x % 5 != 0)
+def IS_INVALID_V(x): return (x < -33) | (x > 33)
+
 FIELDS, startR, endR, startV, endV, startVIL, endVIL = set_fields('ALL')
-# FIELDS = {6:"R01", 7:"R02", 8:"R03", 9:"R04", 10:"R06", 11:"R07", 17:"V01",
-#           18:"V02", 19:"V03", 20:"V04", 21:"V06", 22:"V07"}#, 23:"VIL"}
-# for data 0:"R01", 1:"R02", 2:"R03", 3:"R04", 4:"R06", 5:"R07", 6:"V01",
-# 7:"V02", 8:"V03", 9:"V04", 10:"V06", 11:"V07"

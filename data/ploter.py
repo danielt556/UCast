@@ -28,6 +28,12 @@ def plot(data, data_colors, data_labels, yaxis, xaxis="Timestamp",
     if not len(data) == len(data_colors) == len(data_labels):
         raise ValueError("The number of data plots is not equal to the number of colors and labels")
 
+    mpl.figure(figsize=figsize)
+    mpl.axis("tight")
+    mpl.grid(True, axis="y", linestyle='-')
+    mpl.xlabel(xaxis, fontsize=25)
+    mpl.ylabel(yaxis, fontsize=25)
+
     MIN = min(data[0])
     MAX = max(data[0])
 
@@ -36,11 +42,6 @@ def plot(data, data_colors, data_labels, yaxis, xaxis="Timestamp",
         MAX = max(MAX, max(data[idx]))
         mpl.plot(data[idx], data_colors[idx], label=data_labels[idx])
 
-    mpl.figure(figsize=figsize)
-    mpl.legend(loc=legend_location, prop={'size': figsize[0]})
-    mpl.xlabel(xaxis, fontsize=25)
-    mpl.ylabel(yaxis, fontsize=25)
-    mpl.axis("tight")
     xstep = 10
     mpl.xlim((0, 235))
     mpl.xticks(np.arange(0, len(data[0]) + 5, xstep), fontsize=15)
@@ -49,7 +50,8 @@ def plot(data, data_colors, data_labels, yaxis, xaxis="Timestamp",
         mpl.yticks(np.arange(MIN - ystep, MAX + ystep, ystep), fontsize=15)
     except ValueError as e:
         print(e, MIN, MAX, ystep)
-    mpl.grid(True, axis="y", linestyle='-')
+    mpl.legend(loc=legend_location, prop={'size': figsize[0]})
+    mpl.show()
 
     if save:
-        mpl.savefig("05-06-17-" + yaxis + "-" + str(len(data)) + ".eps", format = "eps", dpi = 1000)
+        mpl.savefig("05-06-17-" + yaxis + "-" + str(len(data)))

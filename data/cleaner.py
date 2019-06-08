@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.spatial import distance
-from config import IS_INVALID_R, IS_INVALID_V, startR, endR, startV, endV
+from data.config import IS_INVALID_R, IS_INVALID_V, startR, endR, startV, endV
 
 
 def get_weights(pdata, point, fdist, finvalid):
