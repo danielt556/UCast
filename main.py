@@ -1,6 +1,6 @@
-from data.config import PATH, startV, endV, IS_INVALID_V
-import data.fileHandler as fh
-from data.ploter import get_stats, plot
+from core.config import PATH, startV, endV, IS_INVALID_V
+import core.fileHandler as fh
+from core.ploter import get_stats, plot
 
 befdata = fh.load_each()
 aftdata = fh.load_one(PATH + "/ALL_DAY-CLEAN(231, 624, 800, 24).npz")
