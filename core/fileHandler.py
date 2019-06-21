@@ -5,7 +5,7 @@ from zipfile import BadZipFile
 import numpy as np
 import sparse
 
-from core.config import PATH, SAVE_FILE_NAME, ALL_FIELDS, FIELDS
+from core.config import PATH, SAVE_FILE_NAME#, ALL_FIELDS, FIELDS
 
 
 def save_file(array, fname, path=PATH):
@@ -18,13 +18,13 @@ def save_file(array, fname, path=PATH):
     point = sparse.COO(array)
     sparse.save_npz(path + "/" + fname, point)
 
+
 def save(array, path):
     if "/" in path:
         fdir, fname = path.rsplit("/", 1)
         save_file(array, fname, fdir)
     else:
         save_file(array, fname)
-
 
 
 def load_each():
@@ -48,8 +48,8 @@ def load_each():
         try:
             record = sparse.load_npz(PATH + "/" + timestamps[ts_idx])
             record = record.todense().astype(np.int16)
-            if FIELDS != ALL_FIELDS:
-                record = record[:, :, FIELDS]
+            # if FIELDS != ALL_FIELDS:
+            #     record = record[:, :, FIELDS]
             if ts_idx == 0:
                 data = np.zeros((len(timestamps), *record.shape), dtype=np.int16)
             data[ts_idx] += record

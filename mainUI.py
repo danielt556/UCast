@@ -1,14 +1,15 @@
 import sys
 import os
-from PyQt5 import QtGui, QtCore, QtWidgets
-from PyQt5.QtWidgets import QMessageBox, QTableWidgetItem
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidgetItem, QHeaderView
 from ui import gui
-from core.config import PATH
+from core.config import PATH, IS_INVALID_R, IS_INVALID_V, Rs13, Vs13
 import core.fileHandler as fh
 from core.cube import Cube
+from core.plotter import Plotter
 
 
-class UCastApp(QtWidgets.QMainWindow):
+class UCastApp(QMainWindow):
     def __init__(self):
         super(UCastApp, self).__init__()
         self.ui = gui.Ui_MainWindow()
@@ -16,14 +17,42 @@ class UCastApp(QtWidgets.QMainWindow):
 
         self.cubes = []
 
+        for i in range(8):
+            self.ui.tableFiles.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
         self.ui.btnLoadDay.clicked.connect(self._loadDayPressed)
         self.ui.btnSaveClean.clicked.connect(self._saveFile)
         self.ui.btnUnload.clicked.connect(self._unloadPressed)
+        self.ui.btnPlot.clicked.connect(self.plotPressed)
         self.ui.ddFeature.activated['QString'].connect(lambda text:
                                                         self.ui.gbFeatures.hide()
                                                         if text == "VIL"
                                                         else self.ui.gbFeatures.show())
         self.populate_list()
+
+    def plotPressed(self):
+        cbIgnore = self.ui.cbIgnore.checkState() == Qt.Checked
+        levels = [self.ui.cbLevel1, self.ui.cbLevel2, self.ui.cbLevel3,
+                    self.ui.cbLevel4, self.ui.cbLevel6, self.ui.cbLevel7]
+        feat = self.ui.ddFeature.currentText()
+        fidxs = [l_idx for l_idx in range(len(levels)) if levels[l_idx].checkState() == Qt.Checked]
+
+        selected = self._get_selected()
+        selected_cubes = []
+        dates_and_clean = []
+        print(len(self.cubes), "Cuburi" )
+        for date, loaded, clean, ts, x, y, feats, ext, row_idx in selected:
+            fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + clean + ext)
+
+            cidx = self._loaded_index((ts, x, y, feats), clean, fname)
+            if cidx != -1:
+                print(cidx, fname, self.cubes[cidx].datapath)
+                dates_and_clean.append(self.cubes[cidx].date + " " + self.cubes[cidx].clean)
+                selected_cubes.append(self.cubes[cidx].data[:, :, :, Vs13])
+        plotter = Plotter(selected_cubes, dates_and_clean, "V")
+        plotter.plot()
+        #print(fidxs)
+        #print(cbBefore, cbIgnore, cbAfter, self.ui.ddFeature.currentText())
+
 
     def _saveFile(self):
         for date, loaded, clean, ts, x, y, feats, ext, row_idx in self._get_selected():
@@ -139,7 +168,7 @@ class UCastApp(QtWidgets.QMainWindow):
 
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     window = UCastApp()
     window.show()
     sys.exit(app.exec_())

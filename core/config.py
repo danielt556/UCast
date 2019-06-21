@@ -39,11 +39,18 @@ PATH = r"data"  # load and save folder path
 SAVE_FILE_NAME = "ALL_DAY"
 
 ALL_FIELDS = list(range(24))
-Rs = list(range(6, 12))
-Vs = list(range(17, 23))
-VIL = [23]
+Rs24 = list(range(6, 12))
+Vs24 = list(range(17, 23))
+VIL24 = [23]
+
+
+Rs13 = list(range(0, 6))
+Vs13 = list(range(6, 12))
+VIL13 = [12]
 
 def IS_INVALID_R(x): return (x < 0) | (x > 75) | (x % 5 != 0)
 def IS_INVALID_V(x): return (x < -33) | (x > 33)
 
-FIELDS, startR, endR, startV, endV, startVIL, endVIL = set_fields('ALL')
+#FIELDS, startR, endR, startV, endV, startVIL, endVIL = set_fields('ALL')
+
+#print(Rs[0])
