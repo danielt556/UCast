@@ -3,7 +3,7 @@ import os
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidgetItem, QHeaderView
 from ui import gui
-from core.config import PATH, IS_INVALID_R, IS_INVALID_V, Rs13, Vs13
+from core.config import PATH, IS_INVALID_R, IS_INVALID_V, Rs13, Vs13, VIL13
 import core.fileHandler as fh
 from core.cube import Cube
 from core.plotter import Plotter
@@ -39,7 +39,7 @@ class UCastApp(QMainWindow):
         selected = self._get_selected()
         selected_cubes = []
         dates_and_clean = []
-        print(len(self.cubes), "Cuburi" )
+        print(len(self.cubes), "Cuburi")
         for date, loaded, clean, ts, x, y, feats, ext, row_idx in selected:
             fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + clean + ext)
 
@@ -47,12 +47,26 @@ class UCastApp(QMainWindow):
             if cidx != -1:
                 print(cidx, fname, self.cubes[cidx].datapath)
                 dates_and_clean.append(self.cubes[cidx].date + " " + self.cubes[cidx].clean)
-                selected_cubes.append(self.cubes[cidx].data[:, :, :, Vs13])
-        plotter = Plotter(selected_cubes, dates_and_clean, "V")
+                if feats == "13":
+                    if feat == "V":
+                        selected_cubes.append(self.cubes[cidx].data[:, :, :, Vs13])
+                    elif feat == "R":
+                        selected_cubes.append(self.cubes[cidx].data[:, :, :, Rs13])
+                    elif feat == "VIL":
+                        selected_cubes.append(self.cubes[cidx].data[:, :, :, VIL13])
+                    else:
+                        raise ValueError("Invalid input")
+                elif feats == "24":
+                    if feat == "V":
+                        selected_cubes.append(self.cubes[cidx].data[:, :, :, Vs24])
+                    elif feat == "R":
+                        selected_cubes.append(self.cubes[cidx].data[:, :, :, Rs24])
+                    elif feat == "VIL":
+                        selected_cubes.append(self.cubes[cidx].data[:, :, :, VIL24])
+                    else:
+                        raise ValueError("Invalid input")
+        plotter = Plotter(selected_cubes, dates_and_clean, feat, cbIgnore)
         plotter.plot()
-        #print(fidxs)
-        #print(cbBefore, cbIgnore, cbAfter, self.ui.ddFeature.currentText())
-
 
     def _saveFile(self):
         for date, loaded, clean, ts, x, y, feats, ext, row_idx in self._get_selected():

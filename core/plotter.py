@@ -4,7 +4,8 @@ from core.config import IS_INVALID_R, IS_INVALID_V
 
 
 class Plotter:
-    def __init__(self, data, date_and_clean, feat_name):
+    def __init__(self, data, date_and_clean, feat_name, ignore=False):
+        self.ignore = ignore
         self.feat_name = feat_name
         if len(data) == 0:
             raise ValueError("Data is empty")
@@ -68,10 +69,17 @@ class Plotter:
             #print(len(self.stats), " ", len(stat))
             means = stat[0]
             ignoring = stat[1]
-            MIN = min(MIN, min(means), min(ignoring))
-            MAX = max(MAX, max(means), max(ignoring))
-            mpl.plot(means, data_colors[0], label="mean" + dandc)
-            mpl.plot(ignoring, data_colors[1], label="ignore" + dandc)
+            if self.ignore and "DIRTY" in dandc and self.feat_name == "V":
+                MIN = min(MIN, min(means), min(ignoring))
+                MAX = max(MAX, max(means), max(ignoring))
+                mpl.plot(ignoring, label="ignore" + dandc)
+            else:
+                MIN = min(MIN, min(means))
+                MAX = max(MAX, max(means))
+            mpl.plot(means, label="mean" + dandc)
+
+            # mpl.plot(means, data_colors[0], label="mean" + dandc)
+            # mpl.plot(ignoring, data_colors[1], label="ignore" + dandc)
 
         xstep = 10
         mpl.xlim((0, len(self.stats[0])))
