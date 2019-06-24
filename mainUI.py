@@ -1,12 +1,14 @@
 import sys
 import os
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QRegExp
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidgetItem, QHeaderView
+from PyQt5.QtGui import QRegExpValidator, QIntValidator
 from ui import gui
 from core.config import PATH, IS_INVALID_R, IS_INVALID_V, Rs13, Vs13, VIL13
 import core.fileHandler as fh
 from core.cube import Cube
 from core.plotter import Plotter
+from DNN.learner import Learner
 
 
 class UCastApp(QMainWindow):
@@ -17,17 +19,94 @@ class UCastApp(QMainWindow):
 
         self.cubes = []
 
+
         for i in range(8):
             self.ui.tableFiles.horizontalHeader().setSectionResizeMode(i, QHeaderView.Stretch)
+
+        # Signals
         self.ui.btnLoadDay.clicked.connect(self._loadDayPressed)
         self.ui.btnSaveClean.clicked.connect(self._saveFile)
         self.ui.btnUnload.clicked.connect(self._unloadPressed)
         self.ui.btnPlot.clicked.connect(self.plotPressed)
+        self.ui.btnTrain.clicked.connect(self.trainPressed)
+        self.ui.btnPredict.clicked.connect(self.predictPressed)
+
         self.ui.ddFeature.activated['QString'].connect(lambda text:
                                                         self.ui.gbFeatures.hide()
                                                         if text == "VIL"
                                                         else self.ui.gbFeatures.show())
+
+        # Validators
+        self.ui.txtEpoch.setValidator(QIntValidator(0, 10000, self.ui.txtEpoch))
+        re_int_list = QRegExp("([0-9]+,)*[0-9]+")
+        valid_re_int_list = QRegExpValidator(re_int_list)
+        self.ui.txtTrainTimestamps.setValidator(valid_re_int_list)
+        self.ui.txtPredictTimestamps.setValidator(valid_re_int_list)
+
+
         self.populate_list()
+
+    def predictPressed(self):
+        selected = self._get_selected()
+        if len(selected) != 1:
+            QMessageBox.warning(self,
+                                "Select only one!",
+                                "Can only train on one dataset at a time!")
+            return
+        date, loaded, clean, ts, x, y, feats, ext, row_idx = selected[0]
+        fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + clean + ext)
+        cidx = self._loaded_index((ts, x, y, feats), clean, fname)
+        if cidx == -1:
+            QMessageBox.warning(self,
+                                "Fail!",
+                                "Data is not loaded!")
+            return
+        try:
+            timestamps = self._str_to_list(self.ui.txtPredictTimestamps.text(), ts)
+        except ValueError as e:
+            QMessageBox.warning(self, "Error!", str(e))
+            return
+        lrn = Learner(self.cubes[cidx].data)
+        lrn.predict(timestamps)
+        lrn.compute_errors()
+
+
+    def trainPressed(self):
+        selected = self._get_selected()
+        if len(selected) != 1:
+            QMessageBox.warning(self,
+                                "Select only one!",
+                                "Can only train on one dataset at a time!")
+            return
+
+        date, loaded, clean, ts, x, y, feats, ext, row_idx = selected[0]
+        fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + clean + ext)
+        try :
+            epochs = int(self.ui.txtEpoch.text())
+            if epochs < 0:
+                raise ValueError("Number of epochs can't be negative")
+        except ValueError as e:
+            QMessageBox.warning(self,
+                                "Invalid number!",
+                                "Invalid number!")
+            return
+        cidx = self._loaded_index((ts, x, y, feats), clean, fname)
+        if cidx == -1:
+            QMessageBox.warning(self,
+                                "Fail!",
+                                "Data not loaded")
+            return
+        try:
+            timestamps = self._str_to_list(self.ui.txtTrainTimestamps.text(), ts)
+        except ValueError as e:
+            QMessageBox.warning(self, "Error!", str(e))
+            return
+        lrn = Learner(self.cubes[cidx].data)
+        lrn.train(epochs, 1, timestamps)#[50, 63, 76, 89, 102, 115, 128, 141, 154, 167]
+        #am folosit 3 epoci mici si 10 mari sau 10 mari si 3 mici pentru a obtine 30 de epoci in final
+        #cu batch size mai mare merge mai repede, la 1010 am avut 400 de epoci in total
+
+
 
     def plotPressed(self):
         cbIgnore = self.ui.cbIgnore.checkState() == Qt.Checked
@@ -37,6 +116,11 @@ class UCastApp(QMainWindow):
         fidxs = [l_idx for l_idx in range(len(levels)) if levels[l_idx].checkState() == Qt.Checked]
 
         selected = self._get_selected()
+        if len(selected) < 1:
+            QMessageBox.warning(self,
+                                "Select data",
+                                "Please select at least 1 data entry")
+            return
         selected_cubes = []
         dates_and_clean = []
         print(len(self.cubes), "Cuburi")
@@ -150,6 +234,13 @@ class UCastApp(QMainWindow):
         for filename in os.listdir(PATH):
             if filename.endswith(".npz"):  # or filename.endswith(".cube"):
                 self._add_file_to_table(filename)
+
+    def _str_to_list(self, string, limit):
+        res =  [int(x) for x in string.split(",")]
+        for x in res:
+            if not (x >=0 and x < int(limit)):
+                raise ValueError("Timestamp outside limits")
+        return res
 
     def _add_file_to_table(self, filename):
         for sep in "(,).":

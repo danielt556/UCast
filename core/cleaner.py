@@ -14,16 +14,18 @@ class Cleaner:
         """
         Construct a matrix of weights based on the data and distance from the centre.
 
-        pdata = 2 dimention matrix containing the data (just x and y axis, no time/feat)
-        point = point of interest, the point that we want to aproximate as (x, y) touple
-        fdist = function to calculate the distance by
-        finvalid = function that defines if a value is invalid
+        :param numpy.ndarray pdata: 2 dimension matrix containing the data (just x and y axis, no time/product)
+        :param touple point: point of interest, the point that we want to aproximate as (x, y)
+        :param function fdist: function to calculate the distance by
+        :param function finvalid: function that defines if a value is invalid
         """
         dist_sum = 0
         weights = np.zeros(pdata.shape)
         for rowNo in range(len(pdata)):
             for colNo in range(len(pdata[rowNo])):
+                # ignore values that are invalid themselves
                 if not finvalid(pdata[rowNo][colNo]):
+                    # compute te distance between the points give by their coordinates
                     dist = fdist((rowNo, colNo), (point[0], point[1]))
                     weights[rowNo][colNo] = 1 / dist if dist != 0 else 0
                     dist_sum += 1 / dist if dist != 0 else 0
@@ -34,14 +36,14 @@ class Cleaner:
 
     def _aprox_point(self, fdata, point, No_neighbours, fdist, finvalid):
         """
-        Aproximate the value of an invalid point based on its neighbours.
-        This functions assumes time is the first dimention of the matrix and feat is the last.
+        Approximate the value of an invalid point based on its neighbours.
+        This function assumes time is the first dimension of the matrix and product is the last.
 
-        fdata = 4 dimention matrix containing the data
-        point = 4-tuple as (time coordonate,
-                           x coordonate,
-                           y coordonate,
-                           feat number(see comment bellow FIELDS definition)
+        fdata = 4 dimension matrix containing the data
+        point = 4-tuple as (time coordinate,
+                           x coordinate,
+                           y coordinate,
+                           product index)
         No_neighbours = number of neighbours in each direction to take
         fdist = function to calculate the distance by
         finvalid = function that defines if a value is invalid

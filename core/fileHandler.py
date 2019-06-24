@@ -48,6 +48,7 @@ def load_each():
         try:
             record = sparse.load_npz(PATH + "/" + timestamps[ts_idx])
             record = record.todense().astype(np.int16)
+            #record = record.astype(np.int16)
             # if FIELDS != ALL_FIELDS:
             #     record = record[:, :, FIELDS]
             if ts_idx == 0:
