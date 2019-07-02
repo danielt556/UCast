@@ -16,6 +16,9 @@ class Cube():
         self.datatype = datatype
         self.datapath = datafolder + "/" + self.get_file_name() + self.datatype
 
+    def refresh_path(self):
+        self.datapath = self.datapath.split("/",1)[0] + "/" + self.get_file_name() + self.datatype
+
     def get_file_name(self):
         return (self.date + "(" +
                 str(self.timestamps) + "," +

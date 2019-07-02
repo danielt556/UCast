@@ -8,6 +8,7 @@ from core.config import PATH, IS_INVALID_R, IS_INVALID_V, Rs13, Vs13, VIL13
 import core.fileHandler as fh
 from core.cube import Cube
 from core.plotter import Plotter
+from core.cleaner import Cleaner
 from DNN.learner import Learner
 
 
@@ -30,6 +31,7 @@ class UCastApp(QMainWindow):
         self.ui.btnPlot.clicked.connect(self.plotPressed)
         self.ui.btnTrain.clicked.connect(self.trainPressed)
         self.ui.btnPredict.clicked.connect(self.predictPressed)
+        self.ui.btnClean.clicked.connect(self.cleanPressed)
 
         self.ui.ddFeature.activated['QString'].connect(lambda text:
                                                         self.ui.gbFeatures.hide()
@@ -45,6 +47,46 @@ class UCastApp(QMainWindow):
 
 
         self.populate_list()
+
+    def cleanPressed(self):
+        selected = self._get_selected()
+        if len(selected) != 1:
+            QMessageBox.warning(self,
+                                "Select only one!",
+                                "Can only clean one dataset at a time!")
+            return
+        date, loaded, clean, ts, x, y, feats, ext, row_idx = selected[0]
+        fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + clean + ext)
+        cidx = self._loaded_index((ts, x, y, feats), clean, fname)
+        if cidx == -1:
+            QMessageBox.warning(self,
+                                "Fail!",
+                                "Data is not loaded!")
+            return
+        if clean == "CLEAN" and not self._are_you_sure("Data is clean",
+                                                        "Data is already marked as clean.Are " +
+                                                        "you sure you want to search for invalid " +
+                                                        "data points again and clean them?"):
+            return
+        if feats == "13":
+            cleaner = Cleaner(Rs13, Vs13)
+        elif feats == "24":
+            cleaner = Cleaner(Rs24, Vs24)
+
+        cleaner.clean_field(self.cubes[cidx].data, "V")
+        self.cubes[cidx].clean="CLEAN"
+        self.cubes[cidx].refresh_path()
+
+        self.ui.tableFiles.setItem(row_idx,  # row
+                                    1,  # column (Loaded)
+                                    QTableWidgetItem(str(False)))
+
+        fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + "CLEAN" + ".MEMORY")
+        self._add_file_to_table(fname)
+        self.ui.tableFiles.setItem(self.ui.tableFiles.rowCount() - 1,  # row
+                                    1,  # column (Loaded)
+                                    QTableWidgetItem(str(True)))
+
 
     def predictPressed(self):
         selected = self._get_selected()
@@ -155,10 +197,10 @@ class UCastApp(QMainWindow):
     def _saveFile(self):
         for date, loaded, clean, ts, x, y, feats, ext, row_idx in self._get_selected():
             fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + clean + ext)
-            if loaded != "True" or ext != ".cube":
+            if loaded != "True" or not (ext == ".cube" or ext == ".MEMORY"):
                 QMessageBox.warning(self,
                                     "Invalid data",
-                                    "Data has to be loaded and extention must be .cube")
+                                    "Data has to be loaded and extention must be .cube or .MEMORY")
                 return
             cidx = self._loaded_index((ts, x, y, feats), clean, fname)
             self.cubes[cidx].save_data()

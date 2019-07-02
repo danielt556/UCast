@@ -66,7 +66,7 @@ class Cleaner:
         else:
             return self._aprox_point(fdata, point, No_neighbours + 1, fdist, finvalid)
 
-    def clean_field(self, field, data, No_neighbours=6, fdist=distance.euclidean):
+    def clean_field(self, data, field, No_neighbours=6, fdist=distance.euclidean):
         """
         Clean a feature.
 
@@ -86,10 +86,11 @@ class Cleaner:
             invalid_points = list(zip(*np.where(finvalid(data[:, :, :, self.Vs]))))
         elif isinstance(field, list):
             for f in field:
-                self.clean_field(f, data, No_neighbours, fdist)
+                self.clean_field(data, f, No_neighbours, fdist)
         else:
             raise ValueError('Unsupported field')
         i = 1
+        print(len(invalid_points))
         for point in invalid_points:
             # correction for the above slicing
             point = *point[0:3], point[3] + startf
