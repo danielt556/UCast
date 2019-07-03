@@ -32,6 +32,7 @@ class UCastApp(QMainWindow):
         self.ui.btnTrain.clicked.connect(self.trainPressed)
         self.ui.btnPredict.clicked.connect(self.predictPressed)
         self.ui.btnClean.clicked.connect(self.cleanPressed)
+        self.ui.btnTruncate.clicked.connect(self.truncatePressed)
 
         self.ui.ddFeature.activated['QString'].connect(lambda text:
                                                         self.ui.gbFeatures.hide()
@@ -44,9 +45,67 @@ class UCastApp(QMainWindow):
         valid_re_int_list = QRegExpValidator(re_int_list)
         self.ui.txtTrainTimestamps.setValidator(valid_re_int_list)
         self.ui.txtPredictTimestamps.setValidator(valid_re_int_list)
+        truncate_validator = QIntValidator(0, 1000)
+        self.ui.txtTimestampStart.setValidator(truncate_validator)
+        self.ui.txtTimestampEnd.setValidator(truncate_validator)
+        self.ui.txtXStart.setValidator(truncate_validator)
+        self.ui.txtXEnd.setValidator(truncate_validator)
+        self.ui.txtYStart.setValidator(truncate_validator)
+        self.ui.txtYEnd.setValidator(truncate_validator)
 
 
         self.populate_list()
+
+    def truncatePressed(self):
+        timestampStart = self.ui.txtTimestampStart.text().split(",")[0]
+        timestampEnd = self.ui.txtTimestampEnd.text().split(",")[0]
+        xStart = self.ui.txtXStart.text().split(",")[0]
+        xEnd = self.ui.txtXEnd.text().split(",")[0]
+        yStart = self.ui.txtYStart.text().split(",")[0]
+        yEnd = self.ui.txtYEnd.text().split(",")[0]
+        if not(timestampStart and timestampEnd and xStart and xEnd and yStart and yEnd):
+            QMessageBox.warning(self, "Empty values!", "Cannot leave empty values!")
+            return
+        selected = self._get_selected()
+        if len(selected) != 1:
+            QMessageBox.warning(self,
+                                "Select only one!",
+                                "Can only truncate one dataset at a time!")
+            return
+        what_feats = self.ui.ddTruncateFeature.currentText()
+        date, loaded, clean, ts, x, y, feats, ext, row_idx = selected[0]
+        fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + clean + ext)
+        cidx = self._loaded_index((ts, x, y, feats), clean, fname)
+        if cidx == -1:
+            QMessageBox.warning(self, "Fail!", "Data is not loaded!")
+            return
+        old_cube = self.cubes[cidx]
+        if what_feats == "ALL" or feats == "13":
+            new_data = old_cube.data[int(timestampStart):int(timestampEnd),
+                                    int(xStart):int(xEnd),
+                                    int(yStart):int(yEnd),
+                                    :]
+        elif what_feats == "R + V + VIL" and feats == "24":
+            new_data = old_cube.data[int(timestampStart):int(timestampEnd),
+                                    int(xStart):int(xEnd),
+                                    int(yStart):int(yEnd),
+                                    Rs13 + Vs13 + VIL13]
+        else:
+            pass
+        new_cube = Cube(old_cube.date, old_cube.clean, new_data)
+        self.cubes.append(new_cube)
+        fname = (date + "("
+                    + str(new_cube.timestamps)
+                    + "," + str(new_cube.x)
+                    + "," + str(new_cube.y)
+                    + "," + str(new_cube.feats)
+                    + ")-" + new_cube.clean
+                    + ".MEMORY")
+        self._add_file_to_table(fname)
+        self.ui.tableFiles.setItem(self.ui.tableFiles.rowCount() - 1,  # row
+                                    1,  # column (Loaded)
+                                    QTableWidgetItem(str(True)))
+
 
     def cleanPressed(self):
         selected = self._get_selected()
@@ -59,9 +118,7 @@ class UCastApp(QMainWindow):
         fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + clean + ext)
         cidx = self._loaded_index((ts, x, y, feats), clean, fname)
         if cidx == -1:
-            QMessageBox.warning(self,
-                                "Fail!",
-                                "Data is not loaded!")
+            QMessageBox.warning(self, "Fail!", "Data is not loaded!")
             return
         if clean == "CLEAN" and not self._are_you_sure("Data is clean",
                                                         "Data is already marked as clean.Are " +
@@ -80,6 +137,9 @@ class UCastApp(QMainWindow):
         self.ui.tableFiles.setItem(row_idx,  # row
                                     1,  # column (Loaded)
                                     QTableWidgetItem(str(False)))
+        self.ui.tableFiles.setItem(row_idx,  # row
+                                    7,  # column (ext)
+                                    QTableWidgetItem(".npz"))
 
         fname = (date + "(" + ts + "," + x + "," + y + "," + feats + ")-" + "CLEAN" + ".MEMORY")
         self._add_file_to_table(fname)
@@ -204,6 +264,9 @@ class UCastApp(QMainWindow):
                 return
             cidx = self._loaded_index((ts, x, y, feats), clean, fname)
             self.cubes[cidx].save_data()
+            self.ui.tableFiles.setItem(row_idx,  # row
+                                        7,  # column (Loaded)
+                                        QTableWidgetItem(".cube"))
 
     def _unloadPressed(self):
         selected = self._get_selected()
