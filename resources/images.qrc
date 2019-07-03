@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="images">
-    <file>images/transparent earth  icon.png</file>
+    <file>images/window_icon.png</file>
+    <file>images/window_background.jpg</file>
   </qresource>
 </RCC>

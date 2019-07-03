@@ -18,7 +18,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="../resources/images.qrc">
-    <normaloff>:/images/images/transparent earth  icon.png</normaloff>:/images/images/transparent earth  icon.png</iconset>
+    <normaloff>:/images/images/window_icon.png</normaloff>:/images/images/window_icon.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true"/>
@@ -28,10 +28,11 @@
     <bool>true</bool>
    </property>
    <property name="autoFillBackground">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="styleSheet">
-    <string notr="true"/>
+    <string notr="true">QWidget#centralwidget {
+	border-image: url(:/images/images/window_background.jpg);}</string>
    </property>
    <layout class="QGridLayout" name="gridLayout">
     <item row="5" column="3">
@@ -120,6 +121,9 @@
         </property>
         <item>
          <widget class="QTableWidget" name="tableFiles">
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(240, 240, 240);</string>
+          </property>
           <property name="horizontalScrollBarPolicy">
            <enum>Qt::ScrollBarAsNeeded</enum>
           </property>
@@ -585,6 +589,9 @@
             <height>16777215</height>
            </size>
           </property>
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="text">
            <string>Timestamp</string>
           </property>
@@ -633,6 +640,9 @@
             <height>25</height>
            </size>
           </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(245, 245, 245);</string>
+          </property>
          </widget>
         </item>
         <item row="3" column="2">
@@ -642,6 +652,9 @@
             <width>50</width>
             <height>25</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(245, 245, 245);</string>
           </property>
          </widget>
         </item>
@@ -653,6 +666,9 @@
             <height>25</height>
            </size>
           </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(245, 245, 245);</string>
+          </property>
          </widget>
         </item>
         <item row="4" column="2">
@@ -662,6 +678,9 @@
             <width>50</width>
             <height>25</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(245, 245, 245);</string>
           </property>
          </widget>
         </item>
@@ -673,6 +692,9 @@
             <height>25</height>
            </size>
           </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(240, 240, 240);</string>
+          </property>
          </widget>
         </item>
         <item row="5" column="1">
@@ -682,6 +704,9 @@
             <width>50</width>
             <height>25</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: rgb(245, 245, 245);</string>
           </property>
          </widget>
         </item>
@@ -944,35 +969,6 @@
      </layout>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>960</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuNOAA">
-    <property name="title">
-     <string>NOAA</string>
-    </property>
-    <addaction name="menuStart_NOAA"/>
-   </widget>
-   <widget class="QMenu" name="menuFile">
-    <property name="title">
-     <string>File</string>
-    </property>
-    <addaction name="actionOpen"/>
-    <addaction name="actionSave_Model"/>
-    <addaction name="actionLoad_Model"/>
-    <addaction name="actionSave_Day"/>
-    <addaction name="actionLoad_Day"/>
-    <addaction name="actionQuit"/>
-   </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuNOAA"/>
   </widget>
   <action name="menuStart_NOAA">
    <property name="text">
